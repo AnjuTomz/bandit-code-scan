@@ -26,8 +26,8 @@ jobs:
           mkdir -p code_snippets
           python convert_csv.py
 
-      - name: Run Bandit on all snippets
-        run: bandit -r code_snippets/ -f html -o bandit_report.html || true
+      - name: Run Bandit for CWE-20, CWE-22, CWE-200
+        run: bandit -r code_snippets/ --tests B303,B304,B305,B506,B301,B604,B605,B102,B105,B106,B501,B502,B320 -f html -o bandit_report.html || true
 
       - name: Upload Bandit Report
         if: always()

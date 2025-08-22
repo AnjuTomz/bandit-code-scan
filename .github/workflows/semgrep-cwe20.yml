@@ -1,0 +1,22 @@
+name: Semgrep CWE-20 Scan
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  semgrep:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run Semgrep with default security rules
+        uses: semgrep/semgrep-action@v1
+        with:
+          config: p/ci, p/python # Default security and Python rules
+
+      - name: Run Semgrep with custom CWE-20 rule
+        uses: semgrep/semgrep-action@v1
+        with:
+          config: .github/semgrep

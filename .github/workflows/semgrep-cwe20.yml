@@ -11,12 +11,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Run Semgrep and output to report
-          run: semgrep --config .github/semgrep --output semgrep_report.json --json
-        with:
-          config: p/ci, p/python # Default security and Python rules
 
-      - name: Run Semgrep with custom CWE-20 rule
-        uses: semgrep/semgrep-action@v1
+      # Run Semgrep with default security and Python rules
+      - name: Semgrep scan with default rules
+        run: semgrep --config=p/ci,p/python --output semgrep_default_report.json --json
+
+      # Run Semgrep with your custom CWE-20 rule
+      - name: Semgrep scan with custom CWE-20 rule
+        run: semgrep --config=.github/semgrep --output semgrep_custom_report.json --json
+
+      # Upload default report as artifact
+      - name: Upload Semgrep Default Report
+        uses: actions/upload-artifact@v4
         with:
-          config: .github/semgrep
+          name: semgrep-default-report
+          path: semgrep_default_report.json
+
+      # Upload custom report as artifact
+      - name: Upload Semgrep Custom CWE-20 Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: semgrep-custom-cwe20-report
+          path: semgrep_custom_report.json

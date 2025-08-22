@@ -1,0 +1,45 @@
+name: Bandit Scan
+
+on:
+  workflow_dispatch:     # Allows you to run it manually
+  push:
+    paths:
+      - 'code.csv'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install requirements
+        run: pip install pandas bandit
+
+      - name: Convert CSV rows to Python files
+        run: |
+          mkdir code_snippets
+          python <<EOF
+          import pandas as pd
+          import os
+          df = pd.read_csv('code.csv')
+          os.makedirs('code_snippets', exist_ok=True)
+          for idx, row in df.iterrows():
+              code = row['full_code']
+              with open(f'code_snippets/snippet_{idx}.py', 'w') as f:
+                  f.write(code)
+          EOF
+
+      - name: Run Bandit on all snippets
+        run: bandit -r code_snippets/ -f html -o bandit_report.html
+
+      - name: Upload Bandit Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: bandit-report
+          path: bandit_report.html

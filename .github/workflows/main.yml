@@ -1,37 +1,39 @@
-name: Bandit Scan
+name: Semgrep CWE-20 Scan
 
 on:
-  workflow_dispatch:
   push:
-    paths:
-      - 'codes.csv'
+    branches: [main]
+  pull_request:
+    branches: [main]
 
 jobs:
-  build:
+  semgrep:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
+      # Install Semgrep
+      - name: Install Semgrep
+        run: pip install semgrep
 
-      - name: Install requirements
-        run: pip install pandas bandit
+      # Run Semgrep with default security and Python rules
+      - name: Semgrep scan with default rules
+        run: semgrep --config=p/ci,p/python --output semgrep_default_report.json --json
 
-      - name: Convert CSV to Python files
-        run: |
-          mkdir -p code_snippets
-          python convert_csv.py
+      # Run Semgrep with your custom CWE-20 rule
+      - name: Semgrep scan with custom CWE-20 rule
+        run: semgrep --config=.github/semgrep --output semgrep_custom_report.json --json
 
-      - name: Run Bandit for CWE-20, CWE-22, CWE-200
-        run: bandit -r code_snippets/ --tests B303,B304,B305,B506,B301,B604,B605,B102,B105,B106,B501,B502,B320 -f html -o bandit_report.html || true
-
-      - name: Upload Bandit Report
-        if: always()
+      # Upload default report as artifact
+      - name: Upload Semgrep Default Report
         uses: actions/upload-artifact@v4
         with:
-          name: bandit-report
-          path: bandit_report.html
+          name: semgrep-default-report
+          path: semgrep_default_report.json
+
+      # Upload custom report as artifact
+      - name: Upload Semgrep Custom CWE-20 Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: semgrep-custom-cwe20-report
+          path: semgrep_custom_report.json

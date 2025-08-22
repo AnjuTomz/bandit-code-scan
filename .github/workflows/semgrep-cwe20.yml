@@ -1,33 +1,43 @@
-name: Semgrep CWE-20 Scan
+name: Semgrep Scan
 
 on:
+  workflow_dispatch:
   push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+    paths:
+      - 'codes.csv'
 
 jobs:
-  semgrep:
+  build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repo
+        uses: actions/checkout@v3
 
-      # Run Semgrep with default security and Python rules
-      - name: Semgrep scan with default rules
-        run: semgrep --config=p/ci,p/python --output semgrep_default_report.json --json
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
 
-      # Run Semgrep with your custom CWE-20 rule
-      - name: Semgrep scan with custom CWE-20 rule
-        run: semgrep --config=.github/semgrep --output semgrep_custom_report.json --json
+      - name: Install requirements
+        run: pip install semgrep pandas
 
-      # Upload default report as artifact
+      - name: Convert CSV to Python files
+        run: |
+          mkdir -p code_snippets
+          python convert_csv.py
+
+      - name: Run Semgrep with default rules
+        run: semgrep --config=p/ci,p/python code_snippets/ --output semgrep_default_report.json --json || true
+
+      - name: Run Semgrep with custom CWE-20 rule
+        run: semgrep --config=.github/semgrep code_snippets/ --output semgrep_custom_report.json --json || true
+
       - name: Upload Semgrep Default Report
         uses: actions/upload-artifact@v4
         with:
           name: semgrep-default-report
           path: semgrep_default_report.json
 
-      # Upload custom report as artifact
       - name: Upload Semgrep Custom CWE-20 Report
         uses: actions/upload-artifact@v4
         with:

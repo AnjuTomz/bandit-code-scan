@@ -1,0 +1,10 @@
+rules:
+  - id: validate-before-transform
+    patterns:
+      - pattern: $ENCODE($INPUT)
+      - pattern-inside: |
+          if $VALIDATE($INPUT):
+              ...
+    message: Input is transformed before validation. Validate raw input first (CWE-20).
+    severity: ERROR
+    languages: [python]

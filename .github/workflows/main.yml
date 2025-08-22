@@ -4,7 +4,7 @@ on:
   workflow_dispatch:     # Allows you to run it manually
   push:
     paths:
-      - 'code.csv'
+      - 'codes.csv'
 
 jobs:
   build:
@@ -27,7 +27,7 @@ jobs:
           python <<EOF
           import pandas as pd
           import os
-          df = pd.read_csv('code.csv')
+          df = pd.read_csv('codes.csv')
           os.makedirs('code_snippets', exist_ok=True)
           for idx, row in df.iterrows():
               code = row['full_code']
